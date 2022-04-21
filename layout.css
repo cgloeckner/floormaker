@@ -1,0 +1,37 @@
+html {
+    background-color: black;
+}
+
+div.tool {
+    width: 1000;
+    height: 550px;
+    padding: 10px;
+    background-color: rgba(75, 75, 75, 0.9);
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+div.menu {
+    height: 50px;
+}
+
+div.menu > button {
+    margin: 5px;
+    padding: 5px;
+}
+
+button.toggled {
+    border: 3px inset black;
+    background-color: rgb(150, 150, 150);
+}
+
+div.tool > canvas {
+    background-color: white;
+}
+
+div.tool > canvas:hover {
+    cursor: crosshair;
+}
