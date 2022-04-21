@@ -18,10 +18,7 @@ function getMousePos(event) {
 
 function getGridPos(event) {
     let pos = getMousePos(event);
-    return {
-        'x': Math.round(pos.x / grid_size) * grid_size,
-        'y': Math.round(pos.y / grid_size) * grid_size
-    };
+    return matchToGrid(pos.x, pos.y);
 }
 
 function selectObject(obj, add=false) {
@@ -32,8 +29,10 @@ function selectObject(obj, add=false) {
         }
         selected = [];
     }
-    selected.push(obj);
-    obj.color = 'DarkOrange';
+    if (obj != null) {
+        selected.push(obj);
+        obj.color = 'DarkOrange';
+    }
 }
 
 // --------------------------------------------------------------------
@@ -55,40 +54,34 @@ function onMouseUp(event) {
     }
 }
 
-function addPoint() {
-    p = new Point(ghost_point.x, ghost_point.y);
-    redraw();
-    return p;
-}
-
 function addLine(event) {
     var ret = null;
-    
+
+    // fetch or fix point
     let pos = getGridPos(event);
-    let obj = getPointAt(pos.x, pos.y, ghost_point);
+    let obj = getPointAt(pos.x, pos.y);
+    if (obj == null) {
+        obj = new Point(pos.x, pos.y);
+    }
+
+    if (ghost_line == null) {
+        // create new ghost line
+        ghost_line = new Line(obj, ghost_point);
+        ghost_line.color = 'red';
     
-    if (ghost_line == null || ghost_line.end == null) {
-        // start ghost line to ghost point
-        if (obj == null) {
-            console.log('add start');
-            obj = addPoint();
-        }
-        if (ghost_line == null) {
-            ghost_line = new Line(obj, ghost_point);
-            ghost_line.color = 'red';
-        } else {
-            ghost_line.start = obj;
-            ghost_line.end   = ghost_point;
-        }
-         
+    } else if (ghost_line.start == null) {
+        // continue ghost line
+        ghost_line.start = obj;   
+        
     } else {
-        // draw
-        if (obj == null) {
-            console.log('add end');
-            obj = addPoint();
-        }
+        // create line from ghost line's start to current point
         ret = new Line(ghost_line.start, obj);
-        // start new ghost line from old line's end point
+
+        // handle line intersections by adding more points inbetween
+        handleIntersections(ret);
+        // TBA
+         
+        // continue ghost line from last position
         ghost_line.start = obj;
     }
     
@@ -97,8 +90,15 @@ function addLine(event) {
 
 function stopLine() {
     if (ghost_line != null) {
+        // stop ghost line
         ghost_line.start = null;
+
         redraw();
+    }
+
+    if (draw_mode) {
+        // disable draw mode
+        onToggleMode();
     }
 }
 
@@ -119,10 +119,8 @@ function onMouseMove(event) {
         } else {
             // select objects
             let pos = getGridPos(event);
-            let obj = getPointAt(pos.x, pos.y, ghost_point);
-            if (obj != null) {
-                selectObject(obj);
-            }
+            let obj = getPointAt(pos.x, pos.y);
+            selectObject(obj);
         }
     }
     
@@ -131,7 +129,7 @@ function onMouseMove(event) {
 
 function onLeftDrag(event) {
     let pos = getGridPos(event);
-    let obj = getPointAt(pos.x, pos.y, ghost_point);
+    let obj = getPointAt(pos.x, pos.y);
 }
 
 function onLoadMap() {

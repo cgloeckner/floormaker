@@ -6,10 +6,10 @@ function drawPoint(p, ctx) {
     ctx.strokeStyle = p.color;
     ctx.lineWidth = 3;
     ctx.beginPath()
-    ctx.moveTo(p.x - 5, p.y - 5);
-    ctx.lineTo(p.x + 5, p.y + 5);
-    ctx.moveTo(p.x - 5, p.y + 5);
-    ctx.lineTo(p.x + 5, p.y - 5);
+    ctx.moveTo(p.x - 15, p.y - 15);
+    ctx.lineTo(p.x + 15, p.y + 15);
+    ctx.moveTo(p.x - 15, p.y + 15);
+    ctx.lineTo(p.x + 15, p.y - 15);
     ctx.stroke();
 }
 
