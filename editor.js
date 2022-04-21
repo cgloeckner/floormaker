@@ -135,28 +135,49 @@ function onLeftDrag(event) {
 }
 
 function onLoadMap() {
-    console.log('NIY');
+    loadFromFile();
+    redraw();
 }
 
 function onSaveMap() {
-    console.log('NIY');
+    // pick last filename if available
+    let fname = $('#load').val().split('\\').pop();
+    if (fname == '') {
+        fname = 'untitled.json';
+    }
+    
+    if (draw_mode) {
+        disableDrawMode();
+    }
+    saveToFile(fname);
+    if (draw_mode) {
+        enableDrawMode();
+    }
 }
 
 function onExportMap() {
     console.log('NIY');
 }
 
+function enableDrawMode() {
+    $('#mode').addClass('toggled');
+    ghost_point.color = 'red';
+}
+
+function disableDrawMode() {
+    $('#mode').removeClass('toggled');
+    ghost_point.color = null;
+    stopLine();
+}
+
 function onToggleMode() {
     draw_mode = !draw_mode;
     
     if (draw_mode) {
-        $('#mode').addClass('toggled');
-        ghost_point.color = 'red';
+        enableDrawMode();
         
     } else {
-        $('#mode').removeClass('toggled');
-        ghost_point.color = null;
-        stopLine();
+        disableDrawMode();
     }
 }
 
@@ -169,7 +190,7 @@ function init() {
     canvas.on('mousemove', onMouseMove);
     canvas.on('touchmove', onMouseMove);
 
-    $('#load').on('click', onLoadMap);
+    $('#load').on('change', onLoadMap);
     $('#save').on('click', onSaveMap);
     $('#export').on('click', onExportMap);
     $('#mode').on('click', onToggleMode);
