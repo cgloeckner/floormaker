@@ -1,4 +1,4 @@
-let grid_size = 64;
+let grid_size = 24;
 var draw_mode = false;
 var button_down = null;
 
@@ -50,8 +50,22 @@ function onMouseUp(event) {
             addLine(event); 
         }
     } else if (btn == 2) { // right click
-        stopLine();
+        onRightClick();
     }
+}
+
+function getOrAddPoint(x, y) {
+    // try to fetch point
+    let obj = getPointAt(x, y);
+    if (obj == null) {
+        // create it
+        obj = new Point(x, y);
+
+        // handle lines being split by this point
+        handleSplits(obj);
+    }
+    
+    return obj;
 }
 
 function addLine(event) {
@@ -59,10 +73,7 @@ function addLine(event) {
 
     // fetch or fix point
     let pos = getGridPos(event);
-    let obj = getPointAt(pos.x, pos.y);
-    if (obj == null) {
-        obj = new Point(pos.x, pos.y);
-    }
+    let obj = getOrAddPoint(pos.x, pos.y);
 
     if (ghost_line == null) {
         // create new ghost line
@@ -79,7 +90,6 @@ function addLine(event) {
 
         // handle line intersections by adding more points inbetween
         handleIntersections(ret);
-        // TBA
          
         // continue ghost line from last position
         ghost_line.start = obj;
@@ -95,11 +105,15 @@ function stopLine() {
 
         redraw();
     }
+}
 
-    if (draw_mode) {
+function onRightClick() {
+    if (ghost_line == null || ghost_line.start == null) {
         // disable draw mode
         onToggleMode();
     }
+
+    stopLine();
 }
 
 function onMouseMove(event) {

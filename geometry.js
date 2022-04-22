@@ -50,11 +50,65 @@ function getPointAt(x, y) {
     return null;
 }
 
+function checkIfInside(point, line) {
+    if (line.start == null || line.end == null) {
+        // skip
+        return null;
+    }
+
+    // solving linear equations system
+    // g: v = (x1, y1) + r*(x2-x1, y2-y1) 
+    let x1 = line.start.x;
+    let y1 = line.start.y;
+    let x2 = line.end.x;
+    let y2 = line.end.y;
+    let x3 = point.x;
+    let y3 = point.y;
+
+    let r1 = (x1-x3) / (x1-x2);
+    let r2 = (y1-y3) / (y1-y2);
+    if (Math.abs(r1) === Infinity || Math.abs(r2) == Infinity) {
+        return null;
+    }
+
+    let r = r1;
+    if (isNaN(r)) {
+        r = r2;
+    }
+    if (isNaN(r)) {
+        return null;
+    }
+    let delta = r1 - r2;
+    if (!isNaN(delta) && Math.abs(delta) >= 1.0) {
+        return null;
+    }
+    
+    // end points excluded
+    return 0.0 < r && r < 1.0;
+}
+
+function handleSplits(point) {
+    for (i in lines) {
+        var line = lines[i];
+        if (line.color != 'black') {
+            // skip
+            continue;
+        }
+        if (checkIfInside(point, line)) {
+            // split into two lines
+            new Line(line.start, point);
+            line.start = point;
+        }
+    }
+}
+
+
 function calcIntersection(a, b) {
     if (a.start == null || a.end == null || b.start == null || b.end == null) {
         // skip
         return null;
     }
+    
     // solving linear equations system
     // g: v = (x1, y1) + r*(x2-x1, y2-y1)
     // h: v = (x3, y3) + s*(x4-x3, y4-y3)
