@@ -94,7 +94,8 @@ function onWheelClick(event) {
     } else {
         let text = prompt('ADD LABEL');
         if (text != null) {
-            new Label(pos.x, pos.y, text);
+            let hull = discoverRoom(pos.x, pos.y);
+            new Label(text, hull);
         }
     }
     redraw();
@@ -150,6 +151,13 @@ function onMouseMove(event) {
         } else {
             $('#draw').css('cursor', 'crosshair')
         }
+
+        for (i in points) { points[i].color = 'black'}
+        tmp = discoverRoom(mouse.x, mouse.y)
+        for (i in tmp) {
+            //tmp[i].color = 'red'
+        }
+        redraw()
     }
     
     redraw();

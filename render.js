@@ -78,5 +78,22 @@ function redraw() {
         }
         drawPoint(ghost_point, ctx);
     }
+
+
+
+    for (i in points) {
+        let tmp = {'start': points[i], 'end': mouse, 'color': 'blue'};
+        let ok = true;
+        for (j in lines) {
+            let res = calcIntersection(tmp, lines[j]);
+            if (res != null) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) {
+            drawLine(tmp, ctx);
+        }
+    }
 }
 

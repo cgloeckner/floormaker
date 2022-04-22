@@ -160,6 +160,17 @@ function removePoint(point) {
             lines[i] = null;
         }
     }
+
+    // search for labels with that point
+    for (i in labels) {
+        if (labels[i] == null) {
+            continue;
+        }
+        if (labels[i].points.includes(point)) {
+            labels[i].points = labels[i].points.filter(p => p != point);
+            calcLabelPos(labels[i]);
+        }
+    }
     
     // search for point in global list
     for (i in points) {
@@ -255,6 +266,9 @@ function handleSplits(point) {
             // check for lable alignment
             for (i in labels) {
                 var label = labels[i];
+                if (label == null) {
+                    continue;
+                }
                 let has_start = label.points.includes(line.start);
                 let has_end   = label.points.includes(line.end);
                 let has_point = label.points.includes(point);
@@ -274,7 +288,7 @@ function handleSplits(point) {
     }
 }
 
-function calcIntersection(a, b) {
+function calcIntersection(a, b, limit_r=true, limit_s=true) {
     if (a.start == null || a.end == null || b.start == null || b.end == null) {
         // skip
         return null;
@@ -294,16 +308,20 @@ function calcIntersection(a, b) {
 
     let r = (y1-y3) / (y1-y2);
     let s = (x1*(y2-y3)-x2*(y1-y3)+x3*(y1-y2)) / ((x3-x4)*(y1-y2));
-    
-    if (r <= 0.0 || r >= 1.0 || isNaN(r)) {
-        // intersection outside line segment
-        return null;
-    }
-    if (s <= 0.0 || s >= 1.0 || isNaN(s)) {
-        // intersection outside line segment
-        return null;
-    }
 
+    if (limit_r) {
+        if (r <= 0.0 || r >= 1.0 || isNaN(r)) {
+            // intersection outside line segment
+            return null;
+        }
+    }
+    if (limit_s) {
+        if (s <= 0.0 || s >= 1.0 || isNaN(s)) {
+            // intersection outside line segment
+            return null;
+        }
+    }
+    
     // calculate intersection point
     let x = x1 + r*(x2-x1);
     let y = y1 + r*(y2-y1);
@@ -346,6 +364,45 @@ function handleIntersections(line) {
 }
 
 // --------------------------------------------------------------------
+
+function discoverRoom(x, y) {
+    // basic idea: fetch all points that can be reached from (x,y)
+    // without crossing ANY wall.
+    // THIS will get all CONVEX rooms
+    // ---
+    // convace rooms: replace (x,y) with center of current room's mass
+    // and continue from there for a couple of times -.-
+    // ---
+    // HENCE: THE USER SHOULD CLICK IN A GOOD SPOT :D 
+    
+    let hull = [];
+    for (i in points) {
+        let tmp_wall = {
+            'start': {'x': x,           'y': y},
+            'end'  : {'x': points[i].x, 'y': points[i].y}
+        };
+        let ok = true;
+        // search for wall collisions
+        for (j in lines) {
+            let collision = calcIntersection(tmp_wall, lines[j], limit_r=false);
+            //let is_start  = points[i] == lines[j].start
+            //let is_end    = points[i] == lines[j].end
+            if (collision != null) {// && !is_start && !is_end) {
+                // failed!
+                ok = false;
+                //break;
+            }
+        }
+        
+        if (ok) {
+            // add point to convex hull
+            hull.push(points[i]);
+        }
+    }
+    
+    return hull;
+}
+
 
 /* This is an attempt to let the tool detect rooms via cycle detection
  * within a graph. It partially works: It returns all cycles, regardless
