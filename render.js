@@ -29,7 +29,25 @@ function drawLine(l, ctx) {
     ctx.stroke();
 }
 
+function drawLabel(l, ctx) {
+    if (l.text == '') {
+        // skip
+        return;
+    }
+    ctx.font      = l.fontsize + 'pt ' + l.fontfamily;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = l.color;
+    ctx.fillText(l.text, l.x, l.y);
+}
+
 function redraw() {
+    // realign labels
+    for (i in labels) {
+        if (labels[i] != null) {
+            calcLabelPos(labels[i]);
+        }
+    }
+    
     let ctx = $('#draw')[0].getContext('2d');    
     ctx.clearRect(0, 0, 800, 450);
 
@@ -43,6 +61,12 @@ function redraw() {
     for (i in points) {
         if (points[i] != null) {
             drawPoint(points[i], ctx);
+        }
+    }
+    // draw labels
+    for (i in labels) {
+        if (labels[i] != null) {
+            drawLabel(labels[i], ctx);
         }
     }
 

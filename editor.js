@@ -1,9 +1,12 @@
 let grid_size   = 24;
 var draw_mode   = false;
+var room_mode   = false;
 var button_down = null;
 
 var selected    = null;
 var mouse       = null;
+
+var room_nodes = [];
 
 // --------------------------------------------------------------------
 
@@ -40,22 +43,61 @@ function onMouseUp(event) {
     button_down = null;
     
     let btn = event.originalEvent.button;
-    if (btn == 0) { // left click
-        if (draw_mode) {
-            addLine(event); 
-        }
-    } else if (btn == 2) { // right click
-        onRightClick();
+    if (btn == 0) {
+        onLeftClick(event);
+    } else if (btn == 1) {
+        onWheelClick(event);
+    } else if (btn == 2) {
+        onRightClick(event);
     }
 }
 
-function onRightClick() {
+function onLeftClick(event) {
+    if (draw_mode) {
+        addLine(event); 
+    }
+
+    if (room_mode) {   
+        let pos = getGridPos(event);
+        let obj = getPointAt(pos.x, pos.y);
+        if (obj != null) {
+            if (!room_nodes.includes(obj)) {
+                room_nodes.push(obj);
+            }
+        }
+    }
+}
+
+function onRightClick(event) {
     if (ghost_start == null) {
         // disable draw mode
         onToggleMode();
+
+        if (room_mode) {
+            disableRoomMode();
+        }
     }
 
     stopLine();
+}
+
+function onWheelClick(event) {
+    let pos = getMousePos(event);
+    let obj = getLabelAt(pos.x, pos.y);
+    
+    if (obj != null) {
+        let text = prompt('EDIT LABEL');
+        if (text != null) {
+            obj.text = text;
+        }
+        
+    } else {
+        let text = prompt('ADD LABEL');
+        if (text != null) {
+            new Label(pos.x, pos.y, text);
+        }
+    }
+    redraw();
 }
 
 function onMouseMove(event) {
@@ -69,25 +111,38 @@ function onMouseMove(event) {
 
     } else {
         if (button_down == 0 && selected != null) {
-            // check for existing point
-            let pos = getGridPos(event);
-            let other = getPointAt(pos.x, pos.y);
-            if (other != null && other != selected) {
-                mergePoints(other, selected);
+            if (selected instanceof Point) {
+                let pos = getGridPos(event);
                 
-            } else {
-                // move object
+                // check for existing point
+                let other = getPointAt(pos.x, pos.y);
+                if (other != null && other != selected) {
+                    mergePoints(other, selected);
+                    
+                } else {
+                    // move object
+                    selected.x = pos.x;
+                    selected.y = pos.y;
+                    handleSplits(selected);
+                }
+            } else if (selected instanceof Label) {  
+                let pos = getMousePos(event);
+                // move label
                 selected.x = pos.x;
                 selected.y = pos.y;
-                handleSplits(selected);
             }
         }
     }
 
     if (button_down == null) {
-        // select objects
-        let pos = getGridPos(event);
-        let obj = getPointAt(pos.x, pos.y);
+        // select label or object
+        let pos = getMousePos(event);
+        let obj = getLabelAt(pos.x, pos.y);
+
+        if (obj == null) {
+            pos = getGridPos(event);
+            obj = getPointAt(pos.x, pos.y);
+        }
         selectObject(obj);
 
         if (selected != null) {
@@ -107,11 +162,18 @@ function onLeftDrag(event) {
 
 function onKeyDown(event) {
     let key = event.originalEvent.key
+    
     if (key == 'Delete' || key == 'Backspace') {
         if (selected != null) {
-            // delete selected point
-            removePoint(selected);
-            selected = null; 
+            if (selected instanceof Point) {
+                // delete selected point
+                removePoint(selected);
+                
+            } else if (selected instanceof Label) {
+                removeLabel(selected);
+            }
+            
+            selected = null;
         }
         redraw();
     }
@@ -131,13 +193,10 @@ function onSaveMap() {
         fname = 'untitled.json';
     }
     
-    if (draw_mode) {
-        disableDrawMode();
-    }
+    disableDrawMode();
+    disableRoomMode();
+    
     saveToFile(fname);
-    if (draw_mode) {
-        enableDrawMode();
-    }
 }
 
 function onExportMap() {
@@ -186,22 +245,54 @@ function stopLine() {
 // --------------------------------------------------------------------
 
 function enableDrawMode() {
+    draw_mode = true;
     $('#mode').addClass('toggled');
 }
 
 function disableDrawMode() {
+    draw_mode = false;
     $('#mode').removeClass('toggled');
     stopLine();
 }
 
 function onToggleMode() {
-    draw_mode = !draw_mode;
-    
+    // disable if enabled
     if (draw_mode) {
-        enableDrawMode();
-        
-    } else {
         disableDrawMode();
+        
+    } else {     
+        disableRoomMode();
+        enableDrawMode();
+    }
+}
+    
+function enableRoomMode() {
+    room_mode = true;
+    room_nodes = [];
+    $('#room').addClass('toggled');
+}
+
+function disableRoomMode() {
+    room_mode = false;
+    $('#room').removeClass('toggled');
+
+    if (room_nodes.length > 2) {
+        let text = prompt('ADD LABEL');
+        if (text != null) {
+            let l = new Label(text, room_nodes); 
+            room_nodes = [];
+        }
+    }
+}
+
+function onLabelRoom() { 
+    // disable if enabled
+    if (room_mode) { 
+        disableRoomMode();
+        
+    } else {           
+        disableDrawMode();
+        enableRoomMode();
     }
 }
 
@@ -220,6 +311,7 @@ function init() {
     $('#save').on('click', onSaveMap);
     $('#export').on('click', onExportMap);
     $('#mode').on('click', onToggleMode);
+    $('#room').on('click', onLabelRoom);
 
     redraw();
 }

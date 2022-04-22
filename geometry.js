@@ -1,5 +1,6 @@
 var points = [];
 var lines  = [];
+var labels = [];
 
 function Point(x, y) {
     this.x     = x;
@@ -22,9 +23,41 @@ function Line(start, end) {
     this.end      = end;
     
     this.color = 'black';
-            
+    
     // register globally
     lines.push(this);
+}
+
+function Label(text, points) {
+    this.points = [];
+    for (i in points) {
+        this.points.push(points[i]);
+    }
+    
+    this.text   = text;
+
+    this.fontsize = 15;
+    this.fontfamily = 'Arial';
+    this.color = 'black';
+
+    calcLabelPos(this);
+
+    // register globally
+    labels.push(this);
+}
+
+function calcLabelPos(label) {
+    let x = 0;
+    let y = 0;
+    for (i in label.points) {
+        x += label.points[i].x;
+        y += label.points[i].y;
+    }
+    x /= label.points.length;
+    y /= label.points.length;
+
+    label.x = x;
+    label.y = y;
 }
 
 /*
@@ -45,6 +78,12 @@ function matchToGrid(x, y) {
     };
 }
 
+function getSquaredDistance(x1, y1, x2, y2) {
+    let dx = x1-x2;
+    let dy = y1-y2;
+    return dx*dx + dy*dy;
+}
+
 function getPointAt(x, y) {
     for (i in points) {
         // check if deleted
@@ -52,12 +91,28 @@ function getPointAt(x, y) {
             // skip
             continue;
         }
-        // check if positions match
-        if (points[i].x == x && points[i].y == y) {
+        // check if position matches
+        let distance = getSquaredDistance(x, y, points[i].x, points[i].y);
+        if (distance < grid_size * 0.5) {
             return points[i];
         }
     }
     return null;
+}
+
+function getLabelAt(x, y) {
+    for (i in labels) {
+        // check if deleted
+        if (labels[i] == null) {
+            // skip
+            continue;
+        }
+        // check if position matches
+        let distance = getSquaredDistance(x, y, labels[i].x, labels[i].y);
+        if (distance < grid_size * 10) {
+            return labels[i];
+        }
+    }
 }
 
 function getOrAddPoint(x, y) {
@@ -68,7 +123,6 @@ function getOrAddPoint(x, y) {
         obj = new Point(x, y);
 
         // handle lines being split by this point
-        // FIXME
         handleSplits(obj);
     }
     
@@ -111,6 +165,16 @@ function removePoint(point) {
     for (i in points) {
         if (points[i] == point) {
             points[i] = null;
+            break;
+        }
+    }
+}
+
+function removeLabel(label) {
+    // search for label in global list
+    for (i in labels) {
+        if (labels[i] == label) {
+            labels[i] = null;
             break;
         }
     }
@@ -188,6 +252,18 @@ function handleSplits(point) {
             continue;
         }
         if (checkIfInside(point, line)) {
+            // check for lable alignment
+            for (i in labels) {
+                var label = labels[i];
+                let has_start = label.points.includes(line.start);
+                let has_end   = label.points.includes(line.end);
+                let has_point = label.points.includes(point);
+                if (has_start && has_end && !has_point) {
+                    label.points.push(point);
+                    calcLabelPos(label);
+                }
+            }
+            
             // split into two lines
             let obj = getLineBetween(line.start, point);
             if (obj == null) {
