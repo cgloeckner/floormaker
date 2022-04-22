@@ -59,6 +59,8 @@ function loadFromFile() {
             let end   = points[l.end];
             new Line(start, end);
         }
+
+        redraw();
     }
 
     reader.readAsBinaryString(upload[0].files[0])

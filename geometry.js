@@ -9,6 +9,11 @@ function Point(x, y) {
 
     // register globally
     points.push(this);
+
+    // stuff for cycle detection
+    this.index = points.length-1;
+    this.depth = null;
+    this.visited = false;
 }
 
 function Line(start, end) {
@@ -263,3 +268,129 @@ function handleIntersections(line) {
         }
     }
 }
+
+// --------------------------------------------------------------------
+
+/* This is an attempt to let the tool detect rooms via cycle detection
+ * within a graph. It partially works: It returns all cycles, regardless
+ * of duplications and size; so super circles are returned that are
+ * useless for that application.
+ */
+
+/*
+function buildGraph() {
+    // build graph from points and walls
+    let adjacent = {};
+    for (i in points) {
+        let p = points[i];
+        if (p == null) {
+            // skip
+            continue;
+        }
+        adjacent[i] = [];
+    }
+    for (i in lines) {
+        let l = lines[i];
+        if (l == null) {
+            // skip
+            continue;
+        }
+        adjacent[l.start.index].push(l.end.index);
+        adjacent[l.end.index].push(l.start.index);
+    }
+
+    return adjacent;
+}
+
+function calcDepths(root, adjacent) {
+    // reset depths and visited state
+    for (i in adjacent) {
+        points[i].depth   = null;
+        points[i].visited = false;
+    }
+
+    let queue = [];
+
+    // add root with depth 0
+    points[root].depth = 0;
+    queue.push(root);
+    
+    while (queue.length > 0) {
+        // grab next node from queue
+        var current = queue.shift();
+        var depth = points[current].depth;
+
+        // traverse neighborhood
+        for (i in adjacent[current]) {
+            var next_id = adjacent[current][i];
+            
+            // calculate depth
+            var point = points[next_id];
+            if (point.depth == null) {
+                point.depth = depth + 1;
+                // try to enqueue
+                if (!(next_id in queue)) {
+                    queue.push(next_id);
+                }
+            }
+        }
+    }
+}
+
+let cycles = [];
+let cycle  = [];
+
+function findCycles(current, root, adjacent) {
+    if (current == root && cycle.length > 2) {
+        // deep copy cycle
+        let found = [];
+        for (i in cycle) {
+            found.push(cycle[i]);
+        }
+        cycles.push(found);
+        return;
+    }
+    
+    if (points[current].visited) {
+        return;
+    }
+    points[current].visited = true;
+    cycle.push(current);
+
+    // evaluate neighbors by distance
+    let queue = {};
+    for (i in adjacent[current]) {
+        let next  = adjacent[current][i];
+        let depth = points[next].depth;
+        if (!(depth in queue)) {
+            queue[depth] = [];
+        }
+        queue[depth].push(next);
+    }
+    //console.log(current, '\t=>\t', queue);
+
+    // try neighbors based on their depth
+    for (depth in queue) {
+        let id_arr = queue[depth];
+        for (i in id_arr) {
+            let next = id_arr[i];
+            findCycles(next, root, adjacent);
+        }
+    }
+    cycle.pop();
+}
+
+function findAllCycles() {
+    let graph = buildGraph();
+    
+    for (i in graph) {
+        calcDepths(i, graph);
+        findCycles(i, i, graph);
+    }
+
+    for (i in cycles) {
+        console.log(cycles[i]);
+    }
+}
+
+*/
