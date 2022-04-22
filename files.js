@@ -47,7 +47,8 @@ function loadFromFile() {
     reader.onload = function() {
         // parse data
         parsed = JSON.parse(reader.result);
-        console.log(parsed)
+        points = [];
+        lines  = [];
         for (i in parsed.points) {
             let p = parsed.points[i];
             new Point(p.x, p.y);

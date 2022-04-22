@@ -31,6 +31,8 @@ function Segment(line, pos=0.5) {
 }
 */
 
+// --------------------------------------------------------------------
+
 function matchToGrid(x, y) {
     return {
         'x': Math.round(x / grid_size) * grid_size,
@@ -53,6 +55,21 @@ function getPointAt(x, y) {
     return null;
 }
 
+function getOrAddPoint(x, y) {
+    // try to fetch point
+    let obj = getPointAt(x, y);
+    if (obj == null) {
+        // create it
+        obj = new Point(x, y);
+
+        // handle lines being split by this point
+        // FIXME
+        handleSplits(obj);
+    }
+    
+    return obj;
+}
+
 function mergePoints(keep, drop) {
     // replace references
     for (i in lines) {
@@ -72,6 +89,30 @@ function mergePoints(keep, drop) {
     removePoint(drop);
 }
 
+function removePoint(point) {
+    // search for line that starts/ends with this point
+    for (i in lines) {
+        if (lines[i] == null) {
+            continue;
+        }
+        if (lines[i].start == point) {
+            lines[i] = null;
+        } else if (lines[i].end == point) {
+            lines[i] = null;
+        }
+    }
+    
+    // search for point in global list
+    for (i in points) {
+        if (points[i] == point) {
+            points[i] = null;
+            break;
+        }
+    }
+}
+
+// --------------------------------------------------------------------
+
 function getLineBetween(a, b) {
     for (i in lines) {
         var l = lines[i];
@@ -90,28 +131,6 @@ function removeLine(line) {
     for (i in lines) {
         if (lines[i] == line) {
             lines[i] = null;
-            break;
-        }
-    }
-}
-
-function removePoint(point) {
-    // search for line that starts/ends with this point
-    for (i in lines) {
-        if (lines[i] == null) {
-            continue;
-        }
-        if (lines[i].start == point) {
-            lines[i] = null;
-        } else if (lines[i].end == point) {
-            lines[i] = null;
-        }
-    }
-    
-    // search for point in global list
-    for (i in points) {
-        if (points[i] == point) {
-            points[i] = null;
             break;
         }
     }

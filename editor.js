@@ -49,58 +49,6 @@ function onMouseUp(event) {
     }
 }
 
-function getOrAddPoint(x, y) {
-    // try to fetch point
-    let obj = getPointAt(x, y);
-    if (obj == null) {
-        // create it
-        obj = new Point(x, y);
-
-        // handle lines being split by this point
-        // FIXME
-        handleSplits(obj);
-    }
-    
-    return obj;
-}
-
-function addLine(event) {
-    var ret = null;
-
-    // fetch or fix point
-    let pos = getGridPos(event);
-    let obj = getOrAddPoint(pos.x, pos.y);
-
-    if (ghost_start == null) {
-        // create new ghost line
-        ghost_start = obj;
-        
-    } else if (ghost_start != obj) {
-        // create line from ghost line's start to current point
-        ret = getLineBetween(ghost_start, obj);
-        if (ret == null) {
-            ret = new Line(ghost_start, obj);
-        }
-
-        // handle line intersections by adding more points inbetween
-        handleIntersections(ret);
-         
-        // continue ghost line from last position
-        ghost_start = obj;
-    }
-    
-    redraw();
-}
-
-function stopLine() {
-    if (ghost_start != null) {
-        // stop ghost line
-        ghost_start = null;
-
-        redraw();
-    }
-}
-
 function onRightClick() {
     if (ghost_start == null) {
         // disable draw mode
@@ -169,6 +117,8 @@ function onKeyDown(event) {
     }
 }
 
+// --------------------------------------------------------------------
+
 function onLoadMap() {
     loadFromFile();
     redraw();
@@ -193,6 +143,47 @@ function onSaveMap() {
 function onExportMap() {
     console.log('NIY');
 }
+
+// --------------------------------------------------------------------
+
+function addLine(event) {
+    var ret = null;
+
+    // fetch or fix point
+    let pos = getGridPos(event);
+    let obj = getOrAddPoint(pos.x, pos.y);
+
+    if (ghost_start == null) {
+        // create new ghost line
+        ghost_start = obj;
+        
+    } else if (ghost_start != obj) {
+        // create line from ghost line's start to current point
+        ret = getLineBetween(ghost_start, obj);
+        if (ret == null) {
+            ret = new Line(ghost_start, obj);
+        }
+
+        // handle line intersections by adding more points inbetween
+        handleIntersections(ret);
+         
+        // continue ghost line from last position
+        ghost_start = obj;
+    }
+    
+    redraw();
+}
+
+function stopLine() {
+    if (ghost_start != null) {
+        // stop ghost line
+        ghost_start = null;
+
+        redraw();
+    }
+}
+
+// --------------------------------------------------------------------
 
 function enableDrawMode() {
     $('#mode').addClass('toggled');
