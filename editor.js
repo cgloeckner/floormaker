@@ -2,7 +2,8 @@ let grid_size   = 24;
 var draw_mode   = false;
 var button_down = null;
 
-var selected    = [];
+var selected    = null;
+var mouse       = null;
 
 // --------------------------------------------------------------------
 
@@ -19,17 +20,13 @@ function getGridPos(event) {
     return matchToGrid(pos.x, pos.y);
 }
 
-function selectObject(obj, add=false) {
-    if (!add) {
-        // reset selection
-        for (i in selected) {
-            selected[i].color = 'black';
-        }
-        selected = [];
+function selectObject(obj) {
+    if (selected != null) {
+        selected.color = 'black';
     }
-    if (obj != null) {
-        selected.push(obj);
-        obj.color = 'DarkOrange';
+    selected = obj;
+    if (selected != null) {
+        selected.color = 'DarkOrange';
     }
 }
 
@@ -114,6 +111,8 @@ function onRightClick() {
 }
 
 function onMouseMove(event) {
+    mouse = getMousePos(event);
+    
     if (draw_mode) {
         // update preview point to mouse (snapped to grid)
         let pos = getGridPos(event);
@@ -121,11 +120,19 @@ function onMouseMove(event) {
         ghost_y = pos.y;
 
     } else {
-        if (button_down == 0 && selected.length > 0) {
-            // move object
+        if (button_down == 0 && selected != null) {
+            // check for existing point
             let pos = getGridPos(event);
-            selected[0].x = pos.x;
-            selected[0].y = pos.y;   
+            let other = getPointAt(pos.x, pos.y);
+            if (other != null && other != selected) {
+                mergePoints(other, selected);
+                
+            } else {
+                // move object
+                selected.x = pos.x;
+                selected.y = pos.y;
+                handleSplits(selected);
+            }
         }
     }
 
@@ -135,7 +142,7 @@ function onMouseMove(event) {
         let obj = getPointAt(pos.x, pos.y);
         selectObject(obj);
 
-        if (selected.length > 0) {
+        if (selected != null) {
             $('#draw').css('cursor', 'move');
         } else {
             $('#draw').css('cursor', 'crosshair')
@@ -153,13 +160,11 @@ function onLeftDrag(event) {
 function onKeyDown(event) {
     let key = event.originalEvent.key
     if (key == 'Delete' || key == 'Backspace') {
-        for (i in selected) {
-            if (selected[i] != null) {   
-                console.log('remove', selected[i]);
-                removePoint(selected[i]);
-            }
+        if (selected != null) {
+            // delete selected point
+            removePoint(selected);
+            selected = null; 
         }
-        selected = [];
         redraw();
     }
 }
@@ -226,6 +231,4 @@ function init() {
     $('#mode').on('click', onToggleMode);
 
     redraw();
-
-    console.log('Initialized')
 }

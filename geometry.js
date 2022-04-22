@@ -53,6 +53,25 @@ function getPointAt(x, y) {
     return null;
 }
 
+function mergePoints(keep, drop) {
+    // replace references
+    for (i in lines) {
+        var l = lines[i];
+        if (l == null) {
+            // skip
+            continue
+        }
+        if (l.start == drop) {
+            l.start = keep;
+        }
+        if (l.end == drop) {
+            l.end = keep;
+        }
+    }
+
+    removePoint(drop);
+}
+
 function getLineBetween(a, b) {
     for (i in lines) {
         var l = lines[i];
@@ -98,7 +117,7 @@ function removePoint(point) {
     }
 }
 
-function checkIfInside(point, line) {
+function checkIfInside(point, line, maxDelta=0.01) {
     if (line.start == null || line.end == null) {
         // skip
         return null;
@@ -128,7 +147,7 @@ function checkIfInside(point, line) {
     if (isNaN(r)) {
         return null;
     }
-    if (!isNaN(delta) && Math.abs(delta) >= 0.01) {
+    if (!isNaN(delta) && Math.abs(delta) >= maxDelta) {
         return null;
     }
     

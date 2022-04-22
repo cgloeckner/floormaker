@@ -8,12 +8,11 @@ function drawPoint(p, ctx) {
         return;
     }
     ctx.strokeStyle = p.color;
-    ctx.lineWidth = 3;
+    ctx.fillStyle   = p.color;
+    ctx.lineWidth   = 1;
     ctx.beginPath()
-    ctx.moveTo(p.x - 15, p.y - 15);
-    ctx.lineTo(p.x + 15, p.y + 15);
-    ctx.moveTo(p.x - 15, p.y + 15);
-    ctx.lineTo(p.x + 15, p.y - 15);
+    ctx.arc(p.x, p.y, 5, 0, 2*Math.PI);
+    ctx.fill();
     ctx.stroke();
 }
 
