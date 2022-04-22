@@ -80,7 +80,10 @@ function addLine(event) {
         
     } else if (ghost_start != obj) {
         // create line from ghost line's start to current point
-        ret = new Line(ghost_start, obj);
+        ret = getLineBetween(ghost_start, obj);
+        if (ret == null) {
+            ret = new Line(ghost_start, obj);
+        }
 
         // handle line intersections by adding more points inbetween
         handleIntersections(ret);

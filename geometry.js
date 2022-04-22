@@ -9,8 +9,6 @@ function Point(x, y) {
 
     // register globally
     points.push(this);
-
-    console.log(this);
 }
 
 function Line(start, end) {
@@ -55,6 +53,20 @@ function getPointAt(x, y) {
     return null;
 }
 
+function getLineBetween(a, b) {
+    for (i in lines) {
+        var l = lines[i];
+        if (l == null) {
+            // skip
+            continue
+        }
+        if (l.start == a && l.end == b || l.start == b && l.end == a) {
+            return l;
+        }
+    }
+    return null;
+}
+
 function removeLine(line) {
     for (i in lines) {
         if (lines[i] == line) {
@@ -65,39 +77,18 @@ function removeLine(line) {
 }
 
 function removePoint(point) {
-    let a = null;
-    let b = null;
-    
     // search for line that starts/ends with this point
     for (i in lines) {
         if (lines[i] == null) {
             continue;
         }
         if (lines[i].start == point) {
-            a = lines[i];
+            lines[i] = null;
+        } else if (lines[i].end == point) {
+            lines[i] = null;
         }
-        if (lines[i].end == point) {
-            b = lines[i];
-        }
     }
-
-    if (a != null) {
-        removeLine(a);
-    }
-    if (b != null) {
-        removeLine(b);
-    }
-    /*
-    if (a == null && b != null) {
-        removeLine(b);
-    } else if (a != null && b == null) {
-        removeLine(a);
-    } else if (a != null && b != null) {
-        a.start = b.start;
-        removeLine(b);
-    }
-    */
-
+    
     // search for point in global list
     for (i in points) {
         if (points[i] == point) {
@@ -155,8 +146,11 @@ function handleSplits(point) {
         }
         if (checkIfInside(point, line)) {
             // split into two lines
-            new Line(line.start, point);
-            line.start = point;
+            let obj = getLineBetween(line.start, point);
+            if (obj == null) {
+                new Line(line.start, point); 
+                line.start = point;
+            }
         }
     }
 }
@@ -214,7 +208,6 @@ function handleIntersections(line) {
 
         // fix intersection point
         let pos = matchToGrid(intersection.x, intersection.y);
-        console.log(intersection, pos);
         let p = getOrAddPoint(pos.x, pos.y);
         
         // check if not already start point
