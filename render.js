@@ -1,3 +1,7 @@
+var ghost_x     = 0;
+var ghost_y     = 0;
+var ghost_start = null;
+
 function drawPoint(p, ctx) {
     if (p.color == null) {
         // skip
@@ -30,11 +34,26 @@ function redraw() {
     let ctx = $('#draw')[0].getContext('2d');    
     ctx.clearRect(0, 0, 800, 450);
 
+    // draw lines
     for (i in lines) {
-        drawLine(lines[i], ctx);
-    }  
+        if (lines[i] != null) {
+            drawLine(lines[i], ctx);
+        }
+    }
+    // draw points
     for (i in points) {
-        drawPoint(points[i], ctx);
+        if (points[i] != null) {
+            drawPoint(points[i], ctx);
+        }
+    }
+
+    // draw ghost line
+    if (draw_mode) {
+        let ghost_point = {'x': ghost_x, 'y': ghost_y, 'color': 'red'};
+        if (ghost_start != null) {
+            drawLine({'start': ghost_start, 'end': ghost_point, 'color': 'red'}, ctx);
+        }
+        drawPoint(ghost_point, ctx);
     }
 }
 
