@@ -1,9 +1,3 @@
-/*
-var room_mode   = false;
-
-var room_nodes = [];
-*/
-
 /// Selected point or label
 let selected    = null
 
@@ -91,23 +85,6 @@ function onLeftClick(event) {
             checkPolygonMerge(selected)
         }
     }
-
-    
-    
-    /*
-    if (draw_mode) {
-        addLine(event); 
-    }
-
-    if (room_mode) {   
-        let pos = getGridPos(event);
-        let obj = getPointAt(pos.x, pos.y);
-        if (obj != null) {
-            if (!room_nodes.includes(obj)) {
-                room_nodes.push(obj);
-            }
-        }
-    }*/
 }
 
 /// Handle a right mouse click
@@ -124,19 +101,6 @@ function onRightClick(event) {
             onToggleMode()
         }
     }
-    
-    /*
-    if (ghost_start == null) {
-        // disable draw mode
-        onToggleMode();
-
-        if (room_mode) {
-            disableRoomMode();
-        }
-    }
-
-    stopLine();
-    */
 }
 
 /// Handle a middle mouse click
@@ -189,62 +153,6 @@ function onMouseMove(event) {
     }
     
     render()
-
-    /*
-    
-    if (draw_mode) {
-        // update preview point to mouse (snapped to grid)
-        let pos = getGridPos(event);
-        ghost_x = pos.x;
-        ghost_y = pos.y;
-
-    } else {
-        if (button_down == 0 && selected != null) {
-            if (selected instanceof Point) {
-                let pos = getGridPos(event);
-                
-                // check for existing point
-                let other = getPointAt(pos.x, pos.y);
-                if (other != null && other != selected) {
-                    mergePoints(other, selected);
-                    
-                } else {
-                    // move object
-                    selected.x = pos.x;
-                    selected.y = pos.y;
-                    handleSplits(selected);
-                }
-            } else if (selected instanceof Label) {  
-                let pos = getMousePos(event);
-                // move label
-                selected.x = pos.x;
-                selected.y = pos.y;
-            }
-        }
-    }
-
-    if (button_down == null) {
-        // select label or object
-        let pos = getMousePos(event);
-        let obj = getLabelAt(pos.x, pos.y);
-
-        if (obj == null) {
-            pos = getGridPos(event);
-            obj = getPointAt(pos.x, pos.y);
-        }
-        selectObject(obj);
-
-        if (selected != null) {
-            $('#draw').css('cursor', 'move');
-        } else {
-            $('#draw').css('cursor', 'crosshair')
-        }
-
-        redraw()
-    }
-    
-    redraw();
-    */
 }
 
 /// Handle holding a key down
@@ -290,47 +198,6 @@ function onExportMap() {
 
 // --------------------------------------------------------------------
 
-/*
-function addLine(event) {
-    var ret = null;
-
-    // fetch or fix point
-    let pos = getGridPos(event);
-    let obj = getOrAddPoint(pos.x, pos.y);
-
-    if (ghost_start == null) {
-        // create new ghost line
-        ghost_start = obj;
-        
-    } else if (ghost_start != obj) {
-        // create line from ghost line's start to current point
-        ret = getLineBetween(ghost_start, obj);
-        if (ret == null) {
-            ret = new Line(ghost_start, obj);
-        }
-
-        // handle line intersections by adding more points inbetween
-        handleIntersections(ret);
-         
-        // continue ghost line from last position
-        ghost_start = obj;
-    }
-    
-    redraw();
-}
-
-function stopLine() {
-    if (ghost_start != null) {
-        // stop ghost line
-        ghost_start = null;
-
-        redraw();
-    }
-}
-*/
-
-// --------------------------------------------------------------------
-
 function enableDrawMode() {
     draw_mode = true
     $('#mode').addClass('toggled')
@@ -355,10 +222,10 @@ function onToggleMode() {
 function init() {
     let canvas = $('#draw');
     canvas.on('mousedown', onMouseDown)
-    //canvas.on('touchstart', onMouseDown)
     canvas.on('mouseup', onMouseUp)
+    canvas.on('mousemove', onMouseMove) 
+    //canvas.on('touchstart', onMouseDown)
     //canvas.on('touchend', onMouseUp)
-    canvas.on('mousemove', onMouseMove)
     //canvas.on('touchmove', onMouseMove)
 
     $(document).on('keydown', onKeyDown)

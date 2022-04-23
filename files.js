@@ -1,8 +1,4 @@
 function saveToFile(fname) {
-    // consolidate
-    //let not_null = function(v, i, ar) { return v != null }
-    //points = points.filter(not_null)
-
     // fetch relevant data
     let pts   = []
     let polys = []
@@ -11,15 +7,18 @@ function saveToFile(fname) {
     }
     for (i in polygons) {
         let poly = polygons[i]
+        // build list of point indices
         let list = []
         for (j in poly.points) {
             list.push(points.indexOf(poly.points[j]))
         }
         polys.push({'label': poly.label, 'points': list})
     }
-    
+
+    // stringify entire dump
     raw = JSON.stringify({'points': pts, 'polygons': polys});
 
+    // offer it as a download
     let blob = new Blob([raw], {type: "text/plain"});
     let url  = window.URL || window.webkitURL;
     let link = url.createObjectURL(blob);
@@ -38,6 +37,7 @@ function loadFromFile() {
         return
     }
 
+    // setup reader with async loading
     let reader = new FileReader();
     reader.onload = function() {
         // parse data
@@ -51,6 +51,7 @@ function loadFromFile() {
         }
         for (i in parsed.polygons) {
             let p   = parsed.polygons[i]
+            // use already loaded points
             let pts = []
             for (j in p.points) {
                 pts.push(points[p.points[j]])
@@ -58,9 +59,10 @@ function loadFromFile() {
             let pol = new Polygon(p.label, pts)
             addPolygon(pol)
         }
-
+        
         render()
     }
 
+    // read file to trigger loading
     reader.readAsBinaryString(upload[0].files[0])
 }

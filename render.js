@@ -118,18 +118,5 @@ function render(select) {
         ctx.stroke()
         */
     }
-    
-    // draw ghost line
-    /*
-    if (draw_mode) {
-        let ghost_point = {'x': ghost_x, 'y': ghost_y, 'color': 'red'};
-        if (ghost_start != null) {
-            drawLine({'start': ghost_start, 'end': ghost_point, 'color': 'red'}, ctx);
-        }
-        drawPoint(ghost_point, ctx);
-    }*/
-
-
-    //drawLine(tmp, ctx);
 }
 
