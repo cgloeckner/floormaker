@@ -16,7 +16,7 @@ let mouse       = null
 let button_down = null
 
 /// Indicates whether draw mode is active or not
-let draw_mode   = false
+let room_mode   = false
 
 /// Ghost point shown in draw mode
 let ghost_point   = null;
@@ -65,7 +65,7 @@ function onMouseUp(event) {
 
 /// Handle a left mouse click
 function onLeftClick(event) {
-    if (draw_mode) {
+    if (room_mode) {
         // add point to pending polygon
         let p = getOrAddPoint(ghost_point.x, ghost_point.y)
         if (advancePolygon(p, ghost_polygon)) {
@@ -97,7 +97,7 @@ function onLeftClick(event) {
 
 /// Handle a right mouse click
 function onRightClick(event) {
-    if (draw_mode) {
+    if (room_mode) {
         if (ghost_polygon.points.length > 0) {
             // undo last polygon point
             ghost_polygon.points.pop()
@@ -106,7 +106,7 @@ function onRightClick(event) {
 
         } else {
             // leave drag mode
-            onToggleMode()
+            onToggleRoomMode()
         }
     }
 }
@@ -135,7 +135,7 @@ function onMouseMove(event) {
     ghost_point.x = gridpos.x
     ghost_point.y = gridpos.y
     
-    if (!draw_mode) {
+    if (!room_mode) {
         if (button_down == null) {
             // select point by hovering
             selected = getPointAt(mouse.x, mouse.y)
@@ -213,23 +213,23 @@ function onExportMap(event) {
 
 // --------------------------------------------------------------------
 
-function enableDrawMode() {
-    draw_mode = true
-    $('#mode').addClass('toggled')
+function enableRoomMode() {
+    room_mode = true
+    $('#room').addClass('toggled')
 }
 
-function disableDrawMode() {
-    draw_mode = false
-    $('#mode').removeClass('toggled')
+function disableRoomMode() {
+    room_mode = false
+    $('#room').removeClass('toggled')
 }
 
-function onToggleMode(event) {
+function onToggleRoomMode(event) {
     // disable if enabled
-    if (draw_mode) {
-        disableDrawMode()
+    if (room_mode) {
+        disableRoomMode()
         
     } else {     
-        enableDrawMode()
+        enableRoomMode()
     }
 }
 
@@ -259,7 +259,7 @@ function init() {
     $('#load').on('change', onLoadMap)
     $('#save').on('click', onSaveMap)
     $('#export').on('click', onExportMap)
-    $('#mode').on('click', onToggleMode) 
+    $('#room').on('click', onToggleRoomMode)
     $('#labels').on('click', onToggleLabels)
 
     // create ghost objects

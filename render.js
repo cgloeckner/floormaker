@@ -72,7 +72,7 @@ function drawAll(ctx) {
         drawPoint(points[i], ctx)
     }
 
-    if (draw_mode) {
+    if (room_mode) {
         // draw ghost objects
         drawPoint(ghost_point, ctx)
         ghost_polygon.points.push(ghost_point)
@@ -86,7 +86,7 @@ function drawAll(ctx) {
         }
     }
 
-    if (draw_mode) {
+    if (room_mode) {
         /// NOTE: This is just for debugging the intersection detection
         
         /*
