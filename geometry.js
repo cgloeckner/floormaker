@@ -1,98 +1,65 @@
-var points = [];
-var lines  = [];
-var labels = [];
+const grid_size = 24;
 
-function Point(x, y) {
-    this.x     = x;
-    this.y     = y;
-
-    this.color = 'black';
-
-    // register globally
-    points.push(this);
-
-    // stuff for cycle detection
-    this.index = points.length-1;
-    this.depth = null;
-    this.visited = false;
-}
-
-function Line(start, end) {
-    // end points
-    this.start    = start;
-    this.end      = end;
-    
-    this.color = 'black';
-    
-    // register globally
-    lines.push(this);
-}
-
-function Label(text, points) {
-    this.points = [];
-    for (i in points) {
-        this.points.push(points[i]);
-    }
-    
-    this.text   = text;
-
-    this.fontsize = 15;
-    this.fontfamily = 'Arial';
-    this.color = 'black';
-
-    calcLabelPos(this);
-
-    // register globally
-    labels.push(this);
-}
-
-function calcLabelPos(label) {
-    let x = 0;
-    let y = 0;
-    for (i in label.points) {
-        x += label.points[i].x;
-        y += label.points[i].y;
-    }
-    x /= label.points.length;
-    y /= label.points.length;
-
-    label.x = x;
-    label.y = y;
-}
-
-/*
-function Segment(line, pos=0.5) {
-    // parent line
-    this.line  = line;
-    // relative position between line's end points [0.0, 1.0]
-    this.pos   = 0.5;
-}
-*/
-
-// --------------------------------------------------------------------
-
-function matchToGrid(x, y) {
+/// Snap a position to the grid
+function snapToGrid(x, y) {
     return {
         'x': Math.round(x / grid_size) * grid_size,
         'y': Math.round(y / grid_size) * grid_size
     };
 }
 
-function getSquaredDistance(x1, y1, x2, y2) {
-    let dx = x1-x2;
-    let dy = y1-y2;
+// --------------------------------------------------------------------
+
+var points = []
+
+/// Create a new point
+function Point(x, y) {
+    this.x     = x
+    this.y     = y
+
+    this.color = 'black'
+}
+
+/// Add point to draw list
+function addPoint(point) {
+    points.push(point)
+}
+
+/// Unlink point from the given polygon
+function unlinkPoint(point, polygon) {
+    let not_this = function(v) { return v != point }
+    polygon.points = polygon.points.filter(not_this)
+}
+
+/// Remove point from draw list, unlink from all polygons
+function removePoint(point) {
+    for (i in polygons) {
+        unlinkPoint(point, polygons[i])
+        refreshPolygon(polygons[i])
+    }
+
+    let not_this = function(v) { return v != point; };
+    points = points.filter(not_this)
+}
+
+/// Calculate squared distance between two points
+function getSquaredDistance(a, b) {
+    let dx = a.x - b.x;
+    let dy = a.y - b.y;
     return dx*dx + dy*dy;
 }
 
-function getPointAt(x, y) {
+/// Query point at given position
+function getPointAt(x, y, ignore=null) {
+    let tmp = new Point(x, y)
+    
     for (i in points) {
-        // check if deleted
-        if (points[i] == null) {
+        if (ignore != null && points[i] == ignore) {
             // skip
-            continue;
+            continue
         }
         // check if position matches
-        let distance = getSquaredDistance(x, y, points[i].x, points[i].y);
+        let distance = getSquaredDistance(tmp, points[i]);
         if (distance < grid_size * 0.5) {
             return points[i];
         }
@@ -100,134 +67,43 @@ function getPointAt(x, y) {
     return null;
 }
 
-function getLabelAt(x, y) {
-    for (i in labels) {
-        // check if deleted
-        if (labels[i] == null) {
-            // skip
-            continue;
-        }
-        // check if position matches
-        let distance = getSquaredDistance(x, y, labels[i].x, labels[i].y);
-        if (distance < grid_size * 10) {
-            return labels[i];
-        }
-    }
-}
-
+/// Either query or create point at given position
 function getOrAddPoint(x, y) {
     // try to fetch point
     let obj = getPointAt(x, y);
     if (obj == null) {
         // create it
         obj = new Point(x, y);
+        addPoint(obj)
 
         // handle lines being split by this point
-        handleSplits(obj);
+        // FIXME
+        //handleSplits(obj);
     }
     
     return obj;
 }
 
+/// Merge two points, remove one
 function mergePoints(keep, drop) {
     // replace references
-    for (i in lines) {
-        var l = lines[i];
-        if (l == null) {
-            // skip
-            continue
-        }
-        if (l.start == drop) {
-            l.start = keep;
-        }
-        if (l.end == drop) {
-            l.end = keep;
-        }
+    for (i in polygons) {
+        var p = polygons[i];
+        var j = p.points.indexOf(drop)
+        p.points[j] = keep
     }
 
     removePoint(drop);
 }
 
-function removePoint(point) {
-    // search for line that starts/ends with this point
-    for (i in lines) {
-        if (lines[i] == null) {
-            continue;
-        }
-        if (lines[i].start == point) {
-            lines[i] = null;
-        } else if (lines[i].end == point) {
-            lines[i] = null;
-        }
-    }
-
-    // search for labels with that point
-    for (i in labels) {
-        if (labels[i] == null) {
-            continue;
-        }
-        if (labels[i].points.includes(point)) {
-            labels[i].points = labels[i].points.filter(p => p != point);
-            calcLabelPos(labels[i]);
-        }
-    }
-    
-    // search for point in global list
-    for (i in points) {
-        if (points[i] == point) {
-            points[i] = null;
-            break;
-        }
-    }
-}
-
-function removeLabel(label) {
-    // search for label in global list
-    for (i in labels) {
-        if (labels[i] == label) {
-            labels[i] = null;
-            break;
-        }
-    }
-}
-
-// --------------------------------------------------------------------
-
-function getLineBetween(a, b) {
-    for (i in lines) {
-        var l = lines[i];
-        if (l == null) {
-            // skip
-            continue
-        }
-        if (l.start == a && l.end == b || l.start == b && l.end == a) {
-            return l;
-        }
-    }
-    return null;
-}
-
-function removeLine(line) {
-    for (i in lines) {
-        if (lines[i] == line) {
-            lines[i] = null;
-            break;
-        }
-    }
-}
-
-function checkIfInside(point, line, maxDelta=0.01) {
-    if (line.start == null || line.end == null) {
-        // skip
-        return null;
-    }
-
+/// Check whether the given point is between points a and b
+function checkBetween(point, a, b, maxDelta=0.01) {
     // solving linear equations system
     // g: v = (x1, y1) + r*(x2-x1, y2-y1) 
-    let x1 = line.start.x;
-    let y1 = line.start.y;
-    let x2 = line.end.x;
-    let y2 = line.end.y;
+    let x1 = a.x;
+    let y1 = a.y;
+    let x2 = b.x;
+    let y2 = b.y;
     let x3 = point.x;
     let y3 = point.y;
 
@@ -254,276 +130,167 @@ function checkIfInside(point, line, maxDelta=0.01) {
     return 0.0 < r && r < 1.0;
 }
 
-function handleSplits(point) {
-    for (i in lines) {
-        var line = lines[i];
-        // check if deleted or is endpoint
-        if (line == null || line.start == point || line.end == point) {
-            // skip
-            continue;
+// --------------------------------------------------------------------
+
+var polygons = []
+
+/// Create a polygon
+function Polygon(label, points) {
+    this.label  = label
+    this.points = points
+
+    this.color  = 'black'
+    
+    this.fontsize   = 15
+    this.fontfamily = 'Arial'
+    refreshPolygon(this)
+}
+
+/// Add polygon to draw list
+function addPolygon(poly) {
+    polygons.push(poly);
+}
+
+/// Remove polygon from draw list
+function removePolygon(poly) {
+    let not_this = function(v) { return v != poly; };
+    polygons = polygons.filter(not_this);
+}
+
+/// Reposition polygon's label
+function refreshPolygon(poly) {
+    /// FIXME instead use: https://gis.stackexchange.com/questions/414260/how-does-geopandas-representative-point-work
+    
+    poly.center = new Point(0, 0)
+    for (i in poly.points) {
+        poly.center.x += poly.points[i].x
+        poly.center.y += poly.points[i].y
+    }
+    poly.center.x /= poly.points.length
+    poly.center.y /= poly.points.length
+}
+
+/// Query polygon label at given position
+function getPolygonAt(x, y) {
+    let tmp = new Point(x, y)
+    
+    for (i in polygons) {
+        // check if position matches
+        let distance = getSquaredDistance(tmp, polygons[i].center);
+        if (distance < grid_size * 10) {
+            return polygons[i];
         }
-        if (checkIfInside(point, line)) {
-            // check for lable alignment
-            for (i in labels) {
-                var label = labels[i];
-                if (label == null) {
-                    continue;
-                }
-                let has_start = label.points.includes(line.start);
-                let has_end   = label.points.includes(line.end);
-                let has_point = label.points.includes(point);
-                if (has_start && has_end && !has_point) {
-                    label.points.push(point);
-                    calcLabelPos(label);
-                }
-            }
+    }
+}
+
+/// Advance a polygon with another point
+function advancePolygon(point, poly) {
+    // check whether the point is already part of the polygon
+    for (i in poly.points) {
+        if (point == poly.points[i]) {
+            // drop all points before that
+            poly.points = poly.points.slice(i)
             
-            // split into two lines
-            let obj = getLineBetween(line.start, point);
-            if (obj == null) {
-                new Line(line.start, point); 
-                line.start = point;
+            // polygon is now a cycle
+            return true
+        }
+    }
+
+    poly.points.push(point)
+    return false
+}
+
+/// Add the given point to the polygon AFTER index
+function mergeInto(point, polygon, index) {
+    let left  = polygon.points.slice(0, index+1)
+    let right = polygon.points.slice(index+1)
+    polygon.points = left.concat([point], right)
+}
+
+/// Checks for all polygons that may get this point
+function checkPolygonMerge(point) {
+    // figure out which polygon is affected
+    for (i in polygons) {
+        let poly    = polygons[i]
+        let changed = false
+
+        // check all successive points
+        let n = poly.points.length - 1
+        for (let j = 0; j < n; ++j) {
+            if (checkBetween(point, poly.points[j], poly.points[j+1])) {
+                mergeInto(point, poly, j)
+                changed = true
+                break
             }
         }
-    }
-}
-
-function calcIntersection(a, b, limit_r=true, limit_s=true) {
-    if (a.start == null || a.end == null || b.start == null || b.end == null) {
-        // skip
-        return null;
-    }
-    
-    // solving linear equations system
-    // g: v = (x1, y1) + r*(x2-x1, y2-y1)
-    // h: v = (x3, y3) + s*(x4-x3, y4-y3)
-    let x1 = a.start.x;
-    let y1 = a.start.y;
-    let x2 = a.end.x;
-    let y2 = a.end.y;
-    let x3 = b.start.x;
-    let y3 = b.start.y;
-    let x4 = b.end.x;
-    let y4 = b.end.y;
-
-    let r = (y1-y3) / (y1-y2);
-    let s = (x1*(y2-y3)-x2*(y1-y3)+x3*(y1-y2)) / ((x3-x4)*(y1-y2));
-
-    if (limit_r) {
-        if (r <= 0.0 || r >= 1.0 || isNaN(r)) {
-            // intersection outside line segment
-            return null;
-        }
-    }
-    if (limit_s) {
-        if (s <= 0.0 || s >= 1.0 || isNaN(s)) {
-            // intersection outside line segment
-            return null;
-        }
-    }
-    
-    // calculate intersection point
-    let x = x1 + r*(x2-x1);
-    let y = y1 + r*(y2-y1);
-
-    return {'x': x, 'y': y};
-}
-
-function handleIntersections(line) {
-    for (i in lines) {
-        var other = lines[i];
-        // check if deleted, same or continued 
-        if (other == null || line == other || other.end == line.start) {
-            // skip
-            continue;
-        }      
-        let intersection = calcIntersection(line, other);
-        if (intersection == null) {
-            // skip
-            continue
-        }
-
-        // fix intersection point
-        let pos = matchToGrid(intersection.x, intersection.y);
-        let p = getOrAddPoint(pos.x, pos.y);
         
-        // check if not already start point
-        if (p != line.start) {
-            // split first line
-            new Line(line.start, p);
-            line.start = p;
+        // also check first and last point
+        if (checkBetween(point, poly.points[n], poly.points[0])) {
+            mergeInto(point, poly, n) 
+            changed = true
         }
 
-        // check if not already end point
-        if (p != other.end) {
-            // split second line
-            new Line(other.start, p);
-            other.start = p;
+        if (changed) {
+            refreshPolygon(poly)
         }
     }
 }
 
 // --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
 
-function discoverRoom(x, y) {
-    // basic idea: fetch all points that can be reached from (x,y)
-    // without crossing ANY wall.
-    // THIS will get all CONVEX rooms
-    // ---
-    // convace rooms: replace (x,y) with center of current room's mass
-    // and continue from there for a couple of times -.-
-    // ---
-    // HENCE: THE USER SHOULD CLICK IN A GOOD SPOT :D 
+/// Calculate intersection from two lines, given by points a, b and c, d
+function calcIntersection(a, b, c, d) {
+    // using a linear equations system
+    // g: x = a + r * (b-a)
+    // h: x = c + s * (d-c)
     
-    let hull = [];
-    for (i in points) {
-        let tmp_wall = {
-            'start': {'x': x,           'y': y},
-            'end'  : {'x': points[i].x, 'y': points[i].y}
-        };
-        let ok = true;
-        // search for wall collisions
-        for (j in lines) {
-            let collision = calcIntersection(tmp_wall, lines[j], limit_r=false);
-            //let is_start  = points[i] == lines[j].start
-            //let is_end    = points[i] == lines[j].end
-            if (collision != null) {// && !is_start && !is_end) {
-                // failed!
-                ok = false;
-                //break;
-            }
-        }
-        
-        if (ok) {
-            // add point to convex hull
-            hull.push(points[i]);
-        }
-    }
+    // calculate intersection parameters
+    let r = a.x * (c.y - d.y) - a.y * (c.x - d.x) + c.x * d.y - c.y * d.x
+    r /= (a.x * (c.y - d.y) - a.y * (c.x - d.x) - b.x * (c.y - d.y) + b.y * (c.x - d.x))
     
-    return hull;
+    let s = -(a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - b.y * c.x)
+    s /= (a.x * (c.y - d.y) - a.y * (c.x - d.x) - b.x * (c.y - d.y) + b.y * (c.x - d.x))
+
+    // calculate intersection point
+    let p = new Point(a.x + r * (b.x - a.x), a.y + r * (b.y - a.y))
+
+    return {'r': r, 's': s, 'point': p}
 }
-
-
-/* This is an attempt to let the tool detect rooms via cycle detection
- * within a graph. It partially works: It returns all cycles, regardless
- * of duplications and size; so super circles are returned that are
- * useless for that application.
- */
 
 /*
-function buildGraph() {
-    // build graph from points and walls
-    let adjacent = {};
-    for (i in points) {
-        let p = points[i];
-        if (p == null) {
-            // skip
-            continue;
-        }
-        adjacent[i] = [];
-    }
-    for (i in lines) {
-        let l = lines[i];
-        if (l == null) {
-            // skip
-            continue;
-        }
-        adjacent[l.start.index].push(l.end.index);
-        adjacent[l.end.index].push(l.start.index);
-    }
-
-    return adjacent;
-}
-
-function calcDepths(root, adjacent) {
-    // reset depths and visited state
-    for (i in adjacent) {
-        points[i].depth   = null;
-        points[i].visited = false;
-    }
-
-    let queue = [];
-
-    // add root with depth 0
-    points[root].depth = 0;
-    queue.push(root);
+/// Calculate all intersections of a line (a, b) with a polygon
+function handleLineIntersection(a, b, poly) {
+    let results = []
+    let n = poly.points.length - 1
     
-    while (queue.length > 0) {
-        // grab next node from queue
-        var current = queue.shift();
-        var depth = points[current].depth;
-
-        // traverse neighborhood
-        for (i in adjacent[current]) {
-            var next_id = adjacent[current][i];
-            
-            // calculate depth
-            var point = points[next_id];
-            if (point.depth == null) {
-                point.depth = depth + 1;
-                // try to enqueue
-                if (!(next_id in queue)) {
-                    queue.push(next_id);
-                }
-            }
+    for (let i = 0; i < n; ++i) {
+        // check for intersection with polygon edge
+        let result = calcIntersection(a, b, poly.points[i], poly.points[i+1])
+        if (0.0 < result.r < 1.0 && 0.0 < result.s < 1.0) {
+            // store result
+            results.push(result)
         }
-    }
-}
-
-let cycles = [];
-let cycle  = [];
-
-function findCycles(current, root, adjacent) {
-    if (current == root && cycle.length > 2) {
-        // deep copy cycle
-        let found = [];
-        for (i in cycle) {
-            found.push(cycle[i]);
-        }
-        cycles.push(found);
-        return;
     }
     
-    if (points[current].visited) {
-        return;
+    // also check with last line
+    let result = calcIntersection(a, b, poly.points[n], poly.points[0])
+    if (0.0 < result.r < 1.0 && 0.0 < result.s < 1.0) {
+        // store result
+        results.push(result)
     }
-    points[current].visited = true;
-    cycle.push(current);
 
-    // evaluate neighbors by distance
-    let queue = {};
-    for (i in adjacent[current]) {
-        let next  = adjacent[current][i];
-        let depth = points[next].depth;
-        if (!(depth in queue)) {
-            queue[depth] = [];
-        }
-        queue[depth].push(next);
-    }
-    //console.log(current, '\t=>\t', queue);
-
-    // try neighbors based on their depth
-    for (depth in queue) {
-        let id_arr = queue[depth];
-        for (i in id_arr) {
-            let next = id_arr[i];
-            findCycles(next, root, adjacent);
-        }
-    }
-    cycle.pop();
-}
-
-function findAllCycles() {
-    let graph = buildGraph();
     
-    for (i in graph) {
-        calcDepths(i, graph);
-        findCycles(i, i, graph);
-    }
-
-    for (i in cycles) {
-        console.log(cycles[i]);
-    }
 }
 
+/// Calculate all intersection points of two polygons
+function calcAllIntersections(a, b) {
+    let n = a.points.length - 1
+
+    for (let i = 0; i < n; ++i) {
+        handleLineIntersection(a.points[i], a.points[i+1], b)
+    }  
+    handleLineIntersection(a.points[n], a.points[0], b)
+}
 */
