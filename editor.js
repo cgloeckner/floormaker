@@ -3,6 +3,9 @@ const default_size = 16
 const fonts = ['sans-serif', 'serif', 'monospace', 'cursive']
 const default_font = 'serif'
 
+let background_color = 'white'
+let foreground_color = 'black'
+
 /// Selected point or label
 let selected    = null
 
@@ -181,11 +184,11 @@ function onKeyDown(event) {
 
 // --------------------------------------------------------------------
 
-function onLoadMap() {
+function onLoadMap(event) {
     loadFromFile()
 }
 
-function onSaveMap() {
+function onSaveMap(event) {
     let label = prompt('FILENAME (*.JSON)', )
     if (label != null) {
         if (!label.endsWith('.json')) {
@@ -197,7 +200,7 @@ function onSaveMap() {
     }
 }
 
-function onExportMap() {
+function onExportMap(event) {
     let label = prompt('FILENAME (*.PNG)', )
     if (label != null) { 
         if (!label.endsWith('.png')) {
@@ -220,7 +223,7 @@ function disableDrawMode() {
     $('#mode').removeClass('toggled')
 }
 
-function onToggleMode() {
+function onToggleMode(event) {
     // disable if enabled
     if (draw_mode) {
         disableDrawMode()
@@ -228,6 +231,18 @@ function onToggleMode() {
     } else {     
         enableDrawMode()
     }
+}
+
+function onToggleLabels(event) {
+    render()
+}
+
+function onChangeSize(event) {    
+    render()
+}
+
+function onChangeFont(event) {
+    render()
 }
 
 function init() {
@@ -244,7 +259,8 @@ function init() {
     $('#load').on('change', onLoadMap)
     $('#save').on('click', onSaveMap)
     $('#export').on('click', onExportMap)
-    $('#mode').on('click', onToggleMode)
+    $('#mode').on('click', onToggleMode) 
+    $('#labels').on('click', onToggleLabels)
 
     // create ghost objects
     ghost_point         = new Point(0, 0)
@@ -253,7 +269,7 @@ function init() {
     ghost_polygon.color = 'red'
 
     // create font sizes
-    let size = $('#size')[0]
+    let size = $('#size')
     for (i in sizes) {
         let option = document.createElement('option')
         option.value = sizes[i] + 'pt'
@@ -261,11 +277,12 @@ function init() {
         if (sizes[i] == default_size) {
             option.selected = true
         }
-        size.append(option)
+        size[0].append(option)
     }
+    size.on('change', onChangeSize)
 
     // create font families
-    let font = $('#font')[0]
+    let font = $('#font')
     for (i in fonts) {
         let option = document.createElement('option')
         option.value = i
@@ -273,8 +290,9 @@ function init() {
         if (fonts[i] == default_font) {
             option.selected = true
         }
-        font.append(option)
+        font[0].append(option)
     }
+    font.on('change', onChangeFont)
     
     render()
 }

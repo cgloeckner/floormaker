@@ -16,7 +16,7 @@ var points = []
 function Point(x, y) {
     this.x     = x
     this.y     = y
-    this.color = 'black'
+    this.color = foreground_color
 }
 
 /// Add point to draw list
@@ -137,7 +137,7 @@ var polygons = []
 function Polygon(label, points) {
     this.label  = label
     this.points = points
-    this.color  = 'black'
+    this.color  = foreground_color
     
     refreshPolygon(this)
 }

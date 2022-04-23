@@ -29,7 +29,7 @@ function drawPolygon(p, ctx) {
     // draw closed polygon chain
     ctx.strokeStyle = p.color
     ctx.lineWidth   = 10
-    ctx.fillStyle   = 'white'
+    ctx.fillStyle   = background_color
     
     ctx.beginPath()
     ctx.moveTo(p.points[0].x, p.points[0].y)
@@ -42,7 +42,7 @@ function drawPolygon(p, ctx) {
     ctx.stroke()
 
     // draw label
-    if (p.label != '') {
+    if (p.label != '' && $('#labels')[0].checked) {
         ctx.font      = $('#size')[0].value + ' ' + fonts[$('#font')[0].value]
         ctx.textAlign = 'center'
         ctx.fillStyle = p.color
@@ -54,6 +54,7 @@ function drawPolygon(p, ctx) {
 function render() {
     // clear canvas
     ctx = $('#draw')[0].getContext('2d')
+    ctx.fillStyle = background_color
     ctx.clearRect(0, 0, 800, 450)
 
     drawAll(ctx)
