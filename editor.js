@@ -67,7 +67,14 @@ function onMouseUp(event) {
 function onLeftClick(event) {
     if (room_mode) {
         // add point to pending polygon
-        let p = getOrAddPoint(ghost_point.x, ghost_point.y)
+        let p = null
+        if ($('#link')[0].checked) {
+            p = getOrAddPoint(ghost_point.x, ghost_point.y)
+        } else {
+            p = new Point(ghost_point.x, ghost_point.y)
+            addPoint(p)
+        }
+        
         if (advancePolygon(p, ghost_polygon)) {
             // polygon chain got closed
             let label = prompt('ADD LABEL')
@@ -78,7 +85,7 @@ function onLeftClick(event) {
             }
         }
     
-    } else {
+    } else if ($('#link')[0].checked) {
         // check for existing point before moving it
         let gridpos = snapToGrid(mouse.x, mouse.y)
         let other   = getPointAt(gridpos.x, gridpos.y, ignore=selected)
@@ -195,7 +202,7 @@ function onSaveMap(event) {
             label += '.json'
         }
         
-        disableDrawMode()
+        disableRoomMode()
         saveToFile(label)
     }
 }

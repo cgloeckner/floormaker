@@ -183,11 +183,14 @@ function getPolygonAt(x, y) {
 function advancePolygon(point, poly) {
     // check whether the point is already part of the polygon
     for (i in poly.points) {
-        if (point == poly.points[i]) {
+        if (point.x == poly.points[i].x && point.y == poly.points[i].y) {
             // drop all points before that
             poly.points = poly.points.slice(i)
             
             // polygon is now a cycle
+            if (!$('#link')[0].checked) {
+                removePoint(point)
+            }
             return true
         }
     }
