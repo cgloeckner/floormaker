@@ -4,17 +4,18 @@ var ghost_start = null;
 
 /// Draw the given point to the context
 function drawPoint(p, ctx) {
-    if (p != selected) {
-        ctx.strokeStyle = p.color
-        ctx.fillStyle   = p.color
-        ctx.lineWidth   = 1
-    } else {
+    ctx.strokeStyle = p.color
+    ctx.fillStyle   = p.color
+    ctx.lineWidth   = 1
+    let size        = 5
+    if (p == selected) {
         ctx.strokeStyle = 'DarkOrange'
         ctx.fillStyle   = 'DarkOrange'
-        ctx.lineWidth   = 5
+        size            = 10
     }
+    
     ctx.beginPath()
-    ctx.arc(p.x, p.y, 15, 0, 2*Math.PI)
+    ctx.arc(p.x, p.y, size, 0, 2*Math.PI)
     ctx.fill()
     ctx.stroke()
 }
@@ -27,7 +28,8 @@ function drawPolygon(p, ctx) {
 
     // draw closed polygon chain
     ctx.strokeStyle = p.color
-    ctx.lineWidth = 10
+    ctx.lineWidth   = 10
+    
     ctx.beginPath()
     ctx.moveTo(p.points[0].x, p.points[0].y)
     for (let i = 1; i < p.points.length; ++i) {
@@ -38,9 +40,9 @@ function drawPolygon(p, ctx) {
 
     // draw label
     if (p.label != '') {
-        ctx.font      = p.fontsize + 'pt ' + p.fontfamily
+        ctx.font      = '15pt Arial' // FIXME: keep global but not hardcoded
         ctx.textAlign = 'center'
-        ctx.fillStyle = 'black'
+        ctx.fillStyle = p.color
         ctx.fillText(p.label, p.center.x, p.center.y)
     }
 }

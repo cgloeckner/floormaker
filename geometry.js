@@ -16,7 +16,6 @@ var points = []
 function Point(x, y) {
     this.x     = x
     this.y     = y
-
     this.color = 'black'
 }
 
@@ -138,11 +137,8 @@ var polygons = []
 function Polygon(label, points) {
     this.label  = label
     this.points = points
-
     this.color  = 'black'
     
-    this.fontsize   = 15
-    this.fontfamily = 'Arial'
     refreshPolygon(this)
 }
 
@@ -292,5 +288,54 @@ function calcAllIntersections(a, b) {
         handleLineIntersection(a.points[i], a.points[i+1], b)
     }  
     handleLineIntersection(a.points[n], a.points[0], b)
+}
+*/
+
+/*
+    if (r <= 0.0 || r >= 1.0 || isNaN(r)) {
+        // intersection outside line segment
+        return null;
+    }
+    if (s <= 0.0 || s >= 1.0 || isNaN(s)) {
+        // intersection outside line segment
+        return null;
+    }
+    
+    // calculate intersection point
+
+
+
+function handleIntersections(line) {
+    for (i in lines) {
+        var other = lines[i];
+        // check if deleted, same or continued 
+        if (other == null || line == other || other.end == line.start) {
+            // skip
+            continue;
+        }      
+        let intersection = calcIntersection(line, other);
+        if (intersection == null) {
+            // skip
+            continue
+        }
+
+        // fix intersection point
+        let pos = snapToGrid(intersection.x, intersection.y);
+        let p = getOrAddPoint(pos.x, pos.y);
+        
+        // check if not already start point
+        if (p != line.start) {
+            // split first line
+            new Line(line.start, p);
+            line.start = p;
+        }
+
+        // check if not already end point
+        if (p != other.end) {
+            // split second line
+            new Line(other.start, p);
+            other.start = p;
+        }
+    }
 }
 */
