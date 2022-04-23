@@ -1,3 +1,8 @@
+const sizes = [6, 7, 8, 9, 10, 10.5, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32, 36, 40]
+const default_size = 16
+const fonts = ['sans-serif', 'serif', 'monospace', 'cursive']
+const default_font = 'serif'
+
 /// Selected point or label
 let selected    = null
 
@@ -218,7 +223,6 @@ function onToggleMode() {
     }
 }
 
-
 function init() {
     let canvas = $('#draw');
     canvas.on('mousedown', onMouseDown)
@@ -241,5 +245,29 @@ function init() {
     ghost_polygon       = new Polygon('', [])
     ghost_polygon.color = 'red'
 
+    // create font sizes
+    let size = $('#size')[0]
+    for (i in sizes) {
+        let option = document.createElement('option')
+        option.value = sizes[i] + 'pt'
+        option.innerHTML = sizes[i]
+        if (sizes[i] == default_size) {
+            option.selected = true
+        }
+        size.append(option)
+    }
+
+    // create font families
+    let font = $('#font')[0]
+    for (i in fonts) {
+        let option = document.createElement('option')
+        option.value = i
+        option.innerHTML = fonts[i] 
+        if (fonts[i] == default_font) {
+            option.selected = true
+        }
+        font.append(option)
+    }
+    
     render()
 }

@@ -40,7 +40,7 @@ function drawPolygon(p, ctx) {
 
     // draw label
     if (p.label != '') {
-        ctx.font      = '15pt Arial' // FIXME: keep global but not hardcoded
+        ctx.font      = $('#size')[0].value + ' ' + fonts[$('#font')[0].value]
         ctx.textAlign = 'center'
         ctx.fillStyle = p.color
         ctx.fillText(p.label, p.center.x, p.center.y)
