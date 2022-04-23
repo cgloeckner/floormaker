@@ -186,19 +186,26 @@ function onLoadMap() {
 }
 
 function onSaveMap() {
-    // pick last filename if available
-    let fname = $('#load').val().split('\\').pop()
-    if (fname == '') {
-        fname = 'untitled.json'
+    let label = prompt('FILENAME (*.JSON)', )
+    if (label != null) {
+        if (!label.endsWith('.json')) {
+            label += '.json'
+        }
+        
+        disableDrawMode()
+        saveToFile(label)
     }
-    
-    disableDrawMode()
-    
-    saveToFile(fname)
 }
 
 function onExportMap() {
-    console.log('NIY')
+    let label = prompt('FILENAME (*.PNG)', )
+    if (label != null) { 
+        if (!label.endsWith('.png')) {
+            label += '.png'
+        }
+        
+        exportToPNG(label)
+    }
 }
 
 // --------------------------------------------------------------------

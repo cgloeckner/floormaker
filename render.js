@@ -29,6 +29,7 @@ function drawPolygon(p, ctx) {
     // draw closed polygon chain
     ctx.strokeStyle = p.color
     ctx.lineWidth   = 10
+    ctx.fillStyle   = 'white'
     
     ctx.beginPath()
     ctx.moveTo(p.points[0].x, p.points[0].y)
@@ -36,6 +37,8 @@ function drawPolygon(p, ctx) {
         ctx.lineTo(p.points[i].x, p.points[i].y)
     }
     ctx.lineTo(p.points[0].x, p.points[0].y)
+    ctx.closePath()
+    ctx.fill()
     ctx.stroke()
 
     // draw label
@@ -47,12 +50,17 @@ function drawPolygon(p, ctx) {
     }
 }
 
-/// Draw everything from scratch
-function render(select) {
+/// Clear canvas and draw everything from scratch
+function render() {
     // clear canvas
-    let ctx = $('#draw')[0].getContext('2d')
+    ctx = $('#draw')[0].getContext('2d')
     ctx.clearRect(0, 0, 800, 450)
 
+    drawAll(ctx)
+}
+
+/// Draw all points and polygons onto the given context
+function drawAll(ctx) {
     // draw polygons
     for (i in polygons) {
         drawPolygon(polygons[i], ctx)

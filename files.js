@@ -16,18 +16,11 @@ function saveToFile(fname) {
     }
 
     // stringify entire dump
-    raw = JSON.stringify({'points': pts, 'polygons': polys});
+    raw = JSON.stringify({'points': pts, 'polygons': polys})
 
     // offer it as a download
-    let blob = new Blob([raw], {type: "text/plain"});
-    let url  = window.URL || window.webkitURL;
-    let link = url.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.setAttribute('download', fname);
-    a.setAttribute('href', link)
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    let blob = new Blob([raw], {type: "text/plain"})
+    saveBlob(blob, fname)
 }
 
 function loadFromFile() {
@@ -65,4 +58,25 @@ function loadFromFile() {
 
     // read file to trigger loading
     reader.readAsBinaryString(upload[0].files[0])
+}
+
+function exportToPNG(fname) {
+    // create canvas
+    let canvas    = document.createElement('canvas')
+    canvas.width  = 800 * 4
+    canvas.height = 450 * 4
+    let context   = canvas.getContext('2d')
+
+    // clear it transparent
+    context.fillStyle = "rgba(255, 255, 255, 0.0)"
+    context.fillRect(0, 0, canvas.width, canvas.height)
+
+    // draw stuff
+    context.scale(4, 4)
+    drawAll(context)
+
+    // save PNG-data to downloadable file
+    let url  = canvas.toDataURL("image/png")
+    let blob = getBlobFromDataURL(url)
+    saveBlob(blob, fname)
 }
